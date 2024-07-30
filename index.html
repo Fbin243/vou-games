@@ -6,27 +6,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>👋🏽👋🏽👋🏽</title>
     <link rel="stylesheet" href="./css/index.css" />
-    <script type="module" src="./js/quiz-game/game.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <script type="module" src="js/quiz-game/index.js"></script>
 </head>
 
 <body>
     <!-- Header - intro content like navigation, logo, etc. -->
-    <header>
-        <span id="nav-logo">HQ TRIVIA</span>
-        <!-- Nav is used for naviation links -->
-        <nav id="main-nav">
-            <!-- Inside of a nav, you will usually place anchor tags. -->
-            <a href="./index.html">Home</a> | <a href="./about.html">About</a>
-        </nav>
+    <header class="d-flex align-items-center justify-content-center gap-2">
+        <img src="assets/images/logo.png" width="60px" height="60px"/>
+        <span id="header">TRIVIA</span>
     </header>
 
     <main>
-        <!-- Build the stats -->
-        <!-- Build an example question -->
-        <!-- Move it to a template -->
-
-        <!-- BEM -->
         <ul class="stats">
+            <li class="stats__stat-container">
+                <div class="stats__stat-label">Question</div>
+                <div id="question-number" class="stats__stat-value">1/10</div>
+            </li>
+            <li class="stats__stat-container">
+                <div class="stats__stat-label">Players</div>
+                <div id="start-session-btn" class="stats__stat-value">0</div>
+            </li>
+            <li class="stats__stat-container">
+                <div class="stats__stat-label">Rank</div>
+                <div class="stats__stat-value">#1</div>
+            </li>
             <li class="stats__stat-container">
                 <div class="stats__stat-label">Score</div>
                 <div id="score" class="stats__stat-value">0</div>
@@ -35,66 +39,69 @@
                 <div class="stats__stat-label">Time</div>
                 <div id="time" class="stats__stat-value">0</div>
             </li>
-            <li class="stats__stat-container">
-                <div class="stats__stat-label">Question</div>
-                <div id="question-number" class="stats__stat-value">1/10</div>
-            </li>
-            <li class="stats__stat-container">
-                <div class="stats__stat-label">Connect Server</div>
-                <div id="start-session-btn" class="stats__stat-value">Connect</div>
-            </li>
-            <li class="stats__stat-container">
-                <div class="stats__stat-label">Start game</div>
-                <div id="send-msg-btn" class="stats__stat-value">Start</div>
-            </li>
+<!--            <li class="stats__stat-container">-->
+<!--                <div class="stats__stat-label">Start game</div>-->
+<!--                <div id="send-msg-btn" class="stats__stat-value">Start</div>-->
+<!--            </li>-->
         </ul>
+
+        <div id="countdown"></div>
 
         <div id="trivia-container">
             <!-- We will insert a clone of the template here from JS. -->
+            <div class="trivia-item">
+                <div class="d-flex align-items-center">
+                    <p class="trivia-item__question m-2"></p>
+                    <div id="virtual-mc" class="pe-3">
+                        <video id="video" width="100px" autoplay muted>
+                            <source src="assets/audios/start.mp4" type="video/mp4" />
+                        </video>
+
+                        <video id="hidden-video" width="100px" autoplay muted>
+                            <source src="assets/audios/end.mp4" type="video/mp4">
+                        </video>
+
+                        <audio id="audio">
+                            <source src="" type="audio/mp3">
+                        </audio>
+                    </div>
+                </div>
+                <ul class="trivia-item__answers">
+                    <li>
+                        <button class="trivia-item__button"></button>
+                    </li>
+                    <li>
+                        <button class="trivia-item__button"></button>
+                    </li>
+                    <li>
+                        <button class="trivia-item__button"></button>
+                    </li>
+                    <li>
+                        <button class="trivia-item__button"></button>
+                    </li>
+                </ul>
+            </div>
         </div>
 
-        <video id="video" width="500px" height="400px" autoplay muted>
-            <source src="./assets/start.mp4" type="video/mp4" />
-        </video>
-
-        <video id="hidden-video" width="500px" height="400px" autoplay muted>
-            <source src="./assets/end.mp4" type="video/mp4">
-        </video>
     </main>
 
     <template id="trivia-item-template-multiple-choice">
-        <div class="trivia-item">
-            <p class="trivia-item__question"></p>
-            <ul class="trivia-item__answers">
-                <li>
-                    <button class="trivia-item__button"></button>
-                </li>
-                <li>
-                    <button class="trivia-item__button"></button>
-                </li>
-                <li>
-                    <button class="trivia-item__button"></button>
-                </li>
-                <li>
-                    <button class="trivia-item__button"></button>
-                </li>
-            </ul>
-        </div>
+
     </template>
 
-    <template id="trivia-item-template">
-        <div class="trivia-item">
-            <p class="trivia-item__question"></p>
-            <ul class="trivia-item__answers">
-                <li>
-                    <button class="trivia-item__button"></button>
-                </li>
-                <li>
-                    <button class="trivia-item__button"></button>
-                </li>
-            </ul>
-        </div>
-    </template>
+<!--    <template id="trivia-item-template">-->
+<!--        <div class="trivia-item">-->
+<!--            <p class="trivia-item__question"></p>-->
+<!--            <ul class="trivia-item__answers">-->
+<!--                <li>-->
+<!--                    <button class="trivia-item__button"></button>-->
+<!--                </li>-->
+<!--                <li>-->
+<!--                    <button class="trivia-item__button"></button>-->
+<!--                </li>-->
+<!--            </ul>-->
+<!--        </div>-->
+<!--    </template>-->
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.1.4/sockjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>

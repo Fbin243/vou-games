@@ -8,10 +8,7 @@ body {
   /*background: url("../images/memphis-colorful-dim.png");*/
   color: rgb(4, 0, 17);
   max-width: 800px;
-  /* This margin auto trick centers block elements. */
-  margin: 0 auto;
   /* font-family: "Century Gothic", sans-serif; */
-  font-family: "PT Sans", sans-serif;
 }
 
 .emoji-list {
@@ -80,4 +77,9 @@ h1 {
   border: 10px solid black;
   padding: 20px;
   margin: 100px; */
+}
+
+h1, h2, h3, h4, h5, h6, p {
+  padding: 0;
+  margin: 0;
 }
