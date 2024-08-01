@@ -19,6 +19,13 @@ class Video {
         video.currentTime = 0
         hiddenVideo.play()
     }
+
+    displayStatic() {
+        hiddenVideo.style.display = 'none'
+        video.style.display = 'block'
+        video.currentTime = 0
+        video.pause()
+    }
 }
 
 export default new Video()

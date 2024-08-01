@@ -6,8 +6,11 @@ const questionNumberElement = document.querySelector("#question-number");
 const triviaContainer = document.querySelector("#trivia-container");
 const triviaQuestion = document.querySelector(".trivia-item__question")
 const triviaAnswers = document.querySelectorAll(".trivia-item__button")
+const startGameBtn = document.getElementById("start-game-btn")
+const waitingScreen = document.getElementById("waiting-screen")
+const playingScreen = document.getElementById("playing-screen")
 const connectBtn = document.getElementById('start-session-btn')
-const startGameBtn = document.getElementById('send-msg-btn')
+const backBtn = document.getElementById("back-btn")
 const time = document.getElementById('time')
 const audio = document.getElementById("audio")
 let score = 0;
@@ -17,10 +20,10 @@ let gameInfo = {
     name: "HQ Trivia",
     number_of_questions: 20,
     duration: 30,
-    startTime: 1722008240 - 1 * 30,
+    startTime: Math.floor(Date.now() / 1000),
 }
+console.log(gameInfo.startTime)
 let socket, stompClient
-let isGameStarted = false
 let playerId
 let eventId
 let gameId
@@ -36,59 +39,26 @@ eventId = 2
 gameId = 3
 sessionId = "669fedc17ada690bd952c608"
 
-let quizResponse = `{
-    "responseCode": 0,
-    "results": [
-        {
-            "type": "multiple",
-            "difficulty": "easy",
-            "question": "Which of the following countries was not an axis power during World War II?",
-            "correct_answer": " Soviet Union",
-            "incorrect_answers": [
-                "Italy",
-                "Germany",
-                "Japan"
-            ],
-            "correct_answer_index": 1,
-            "audio_url": "https://voubucket.s3.amazonaws.com/questions/669fedc17ada690bd952c607/1.mp3"
-        },
-        {
-            "type": "multiple",
-            "difficulty": "medium",
-            "question": "What is the largest Muslim country in the world?",
-            "correct_answer": "Indonesia",
-            "incorrect_answers": [
-                "Pakistan",
-                "Saudi Arabia",
-                "Iran"
-            ],
-                "correct_answer_index": 2,
-            "audio_url": "https://voubucket.s3.amazonaws.com/questions/669fedc17ada690bd952c607/2.mp3"
-        },
-        {
-            "type": "multiple",
-            "difficulty": "hard",
-            "question": "Before Super Smash Bros. contained Nintendo characters, what was it known as internally?",
-            "correct_answer": "Dragon King: The Fighting Game",
-            "incorrect_answers": [
-                "Contest of Champions",
-                "Smash and Pummel",
-                "Fighter of the Ages: Conquest"
-            ],
-            "correct_answer_index": 0,
-            "audio_url": "https://voubucket.s3.amazonaws.com/questions/669fedc17ada690bd952c607/3.mp3"
-        }
-    ]
-}`
+let quizResponse
 
-quizzes = JSON.parse(quizResponse).results
-console.log("quizzes: ", quizzes)
-displayQuiz()
 setUpEventClickAnswer()
+wsConnectGame()
+handleClickStartGame()
 
 /**
  * UI
  */
+
+function handleClickStartGame() {
+    startGameBtn.addEventListener("click", () => {
+        console.log("Start game")
+        waitingScreen.classList.add("d-none")
+        playingScreen.classList.remove("d-none")
+        startGameBtn.classList.add("d-none")
+        wsStartGame()
+    })
+}
+
 function displayQuiz() {
     const triviaItem = quizzes[quizIndex];
     if (!triviaItem) return;
@@ -109,22 +79,26 @@ function displayQuiz() {
 
     triviaAnswers.forEach((answer, index) => {
         answer.innerHTML = allAnswers[index];
+        resetStateOfAnswer(answer)
     });
 
     const triviaDiv = triviaContainer.querySelector(".trivia-item");
     fade(triviaDiv, "in");
 }
 
+function resetStateOfAnswer(answer) {
+    selectedAnswerTarget = null
+    answer.disabled = false
+    answer.classList.remove("trivia-item__button--pending")
+    answer.classList.remove("trivia-item__button--disabled")
+    answer.classList.remove("trivia-item__button--correct")
+    answer.classList.remove("trivia-item__button--incorrect")
+}
+
 function setUpEventClickAnswer() {
     triviaAnswers.forEach((answer, index) => {
         answer.addEventListener("click", onAnswerClicked);
     });
-}
-
-function clearQuiz() {
-    for (const child of triviaContainer.children) {
-        triviaContainer.removeChild(child);
-    }
 }
 
 function onAnswerClicked(event) {
@@ -135,18 +109,21 @@ function onAnswerClicked(event) {
     });
 
     selectedAnswerTarget.classList.add("trivia-item__button--pending");
-
-
-    setTimeout(() => {
-        showCorrectAnswer()
-    }, 10000)
 }
 
 function showCorrectAnswer() {
-    const selectedAnswer = selectedAnswerTarget.innerText;
     const quiz = quizzes[quizIndex];
     const correctAnswer = quiz.correct_answer;
 
+    if(selectedAnswerTarget === null) {
+        triviaAnswers.forEach((answer) => {
+            if(answer.innerText.trim() === correctAnswer.trim()) {
+                selectedAnswerTarget = answer
+            }
+        })
+    }
+
+    const selectedAnswer = selectedAnswerTarget.innerText;
     if (selectedAnswer.trim() === correctAnswer.trim()) {
         console.log("Correct!");
         updateScore(score + calculateScore());
@@ -205,8 +182,13 @@ function endGame() {
 function onStartGame(message) {
     let responseBody = JSON.parse(message.body)
     quizzes = responseBody.quizResponse.results
+    console.log("Quizzes; ", quizzes)
     updateScore(responseBody.totalScore)
-    isGameStarted = true;
+    updateQuestionNumber()
+    displayQuiz()
+    Video.displayStatic()
+    if (timeRemain < 30) readQuestion()
+    if (timeRemain < 5) readAnswer()
 }
 
 function onUpdateLeaderboard(message) {
@@ -222,18 +204,17 @@ function onUpdateGame(message) {
     timeRemain = gameInfo.duration - difference % (gameInfo.duration + 1);
     time.innerText = timeRemain
 
-    if (isGameStarted) {
-        quizIndex = Math.floor(difference / (gameInfo.duration + 1))
-        console.log("onUpdateGameStatus ", quizIndex)
-        if (quizIndex >= quizzes.length) {
-            isGameStarted = false
-            endGame()
-        } else {
-            if (timeRemain === 30) {
-                clearQuiz()
-            }
-            updateQuestionNumber();
+    quizIndex = Math.floor(difference / (gameInfo.duration + 1))
+    console.log("onUpdateGameStatus ", quizIndex)
+    if (quizIndex >= quizzes.length) {
+        // endGame()
+    } else {
+        if (timeRemain === 30) {
             displayQuiz();
+            updateQuestionNumber();
+            readQuestion();
+        } else if (timeRemain === 5) {
+            readAnswer();
         }
     }
 }
@@ -243,20 +224,34 @@ function calculateScore() {
 }
 
 
-
 /**
  * Virtual MC
  */
-questionNumberElement.addEventListener("click", function () {
-    readQuestion()
-})
-
 setUpEventAudioEnd()
 
 function readQuestion() {
+    // TODO: Set 0 for testing
     audio.src = quizzes[quizIndex].audio_url
+    console.log("src", audio.src)
+    if (30 - timeRemain >= audio.duration) return
+    audio.currentTime = 30 - timeRemain
     audio.play()
     Video.startSpeaking()
+}
+
+function readAnswer() {
+    audio.src = `https://voubucket.s3.amazonaws.com/answers/${incrementChar('A', quizzes[quizIndex].correct_answer_index)}.mp3`
+    if (5 - timeRemain < 0) return
+    audio.currentTime = 5 - timeRemain
+    audio.play()
+    Video.startSpeaking()
+    setTimeout(showCorrectAnswer, 3000)
+}
+
+function incrementChar(char, num) {
+    let charCode = char.charCodeAt(0);
+    let newCharCode = charCode + num;
+    return String.fromCharCode(newCharCode);
 }
 
 function setUpEventAudioEnd() {
@@ -319,6 +314,3 @@ function wsUpdateGame() {
         })
     }))
 }
-
-// connectBtn.addEventListener("click", wsConnectGame)
-// startGameBtn.addEventListener('click', wsStartGame)
