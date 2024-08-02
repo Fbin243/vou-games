@@ -32,10 +32,10 @@
                 <div class="stats__stat-label">Players</div>
                 <div id="start-session-btn" class="stats__stat-value">0</div>
             </li>
-            <li class="stats__stat-container">
-                <div class="stats__stat-label">Rank</div>
-                <div class="stats__stat-value">#1</div>
-            </li>
+<!--            <li class="stats__stat-container">-->
+<!--                <div class="stats__stat-label">Rank</div>-->
+<!--                <div class="stats__stat-value">#1</div>-->
+<!--            </li>-->
             <li class="stats__stat-container">
                 <div class="stats__stat-label">Score</div>
                 <div id="score" class="stats__stat-value">0</div>
@@ -51,17 +51,13 @@
                 <div class="d-flex align-items-center justify-content-center">
                     <p class="trivia-item__question"></p>
                     <div id="virtual-mc">
-                        <video id="video" width="100px" autoplay muted>
+                        <video class="video" width="100px" autoplay muted>
                             <source src="assets/audios/start.mp4" type="video/mp4"/>
                         </video>
 
-                        <video id="hidden-video" width="100px" autoplay muted>
+                        <video class="hidden-video" width="100px" autoplay muted>
                             <source src="assets/audios/end.mp4" type="video/mp4">
                         </video>
-
-                        <audio id="audio">
-                            <source src="" type="audio/mp3">
-                        </audio>
                     </div>
                 </div>
                 <ul class="trivia-item__answers">
@@ -81,9 +77,25 @@
             </div>
         </div>
     </div>
-    <div id="waiting-screen">
-    </div>
+    <div id="waiting-screen" class="d-flex flex-column align-items-center">
+        <ol id="instruction">
+            <li>Open the HQ Trivia app and tap "Start" when the live show begins.</li>
+            <li>You need to answer multiple-choice questions. Choose the correct answer within the time limit. The faster you answer, the better!</li>
+            <li>If you make it to the final round and answer all questions correctly, you could win a share of the cash prize!</li>
+            <li>Enjoy the game, test your trivia skills, and compete with players from around the world!</li>
+        </ol>
+<!--        <video class="video" width="100px" autoplay muted>-->
+<!--            <source src="assets/audios/start.mp4" type="video/mp4"/>-->
+<!--        </video>-->
+
+<!--        <video class="hidden-video" width="100px" autoplay muted>-->
+<!--            <source src="assets/audios/end.mp4" type="video/mp4">-->
+<!--        </video>-->
     <button id="start-game-btn" type="button" class="btn btn-primary position-fixed bottom-0 mb-5 mx-5 start-0 end-0">Start</button>
+    </div>
+    <audio id="audio">
+        <source src="" type="audio/mp3">
+    </audio>
 </main>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.1.4/sockjs.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>

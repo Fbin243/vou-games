@@ -7,18 +7,19 @@ const triviaContainer = document.querySelector("#trivia-container");
 const triviaQuestion = document.querySelector(".trivia-item__question")
 const triviaAnswers = document.querySelectorAll(".trivia-item__button")
 const startGameBtn = document.getElementById("start-game-btn")
-const waitingScreen = document.getElementById("waiting-screen")
 const playingScreen = document.getElementById("playing-screen")
 const connectBtn = document.getElementById('start-session-btn')
 const backBtn = document.getElementById("back-btn")
 const time = document.getElementById('time')
 const audio = document.getElementById("audio")
+const waitingScreen = document.getElementById("waiting-screen")
+const waitingAudio = document.getElementById("waiting-audio")
 let score = 0;
 let quizIndex = 0;
 let quizzes = []
 let gameInfo = {
     name: "HQ Trivia",
-    number_of_questions: 20,
+    number_of_questions: 3,
     duration: 30,
     startTime: Math.floor(Date.now() / 1000),
 }
@@ -114,10 +115,12 @@ function onAnswerClicked(event) {
 function showCorrectAnswer() {
     const quiz = quizzes[quizIndex];
     const correctAnswer = quiz.correct_answer;
+    let isChosen = true
 
-    if(selectedAnswerTarget === null) {
+    if (selectedAnswerTarget === null) {
+        isChosen = false;
         triviaAnswers.forEach((answer) => {
-            if(answer.innerText.trim() === correctAnswer.trim()) {
+            if (answer.innerText.trim() === correctAnswer.trim()) {
                 selectedAnswerTarget = answer
             }
         })
@@ -126,10 +129,12 @@ function showCorrectAnswer() {
     const selectedAnswer = selectedAnswerTarget.innerText;
     if (selectedAnswer.trim() === correctAnswer.trim()) {
         console.log("Correct!");
-        updateScore(score + calculateScore());
         selectedAnswerTarget.classList.add("trivia-item__button--correct");
-        // Update score to server
-        wsUpdateGame()
+        if(isChosen) {
+            updateScore(score + calculateScore());
+            // Update score to server
+            wsUpdateGame()
+        }
     } else {
         console.log("Incorrect!");
         selectedAnswerTarget.classList.add("trivia-item__button--incorrect");
@@ -160,8 +165,13 @@ function updateScore(newScore) {
 
 function updateQuestionNumber() {
     const questionNum = quizIndex + 1;
-    const totalNumQuestions = quizzes.length;
     questionNumberElement.textContent = `${questionNum}/${gameInfo.number_of_questions}`;
+}
+
+function clearQuiz() {
+    for (const child of triviaContainer.children) {
+        triviaContainer.removeChild(child);
+    }
 }
 
 function endGame() {
@@ -187,7 +197,7 @@ function onStartGame(message) {
     updateQuestionNumber()
     displayQuiz()
     Video.displayStatic()
-    if (timeRemain < 30) readQuestion()
+    if (timeRemain < gameInfo.duration) readQuestion()
     if (timeRemain < 5) readAnswer()
 }
 
@@ -206,10 +216,10 @@ function onUpdateGame(message) {
 
     quizIndex = Math.floor(difference / (gameInfo.duration + 1))
     console.log("onUpdateGameStatus ", quizIndex)
-    if (quizIndex >= quizzes.length) {
-        // endGame()
+    if (quizIndex >= gameInfo.number_of_questions) {
+        endGame()
     } else {
-        if (timeRemain === 30) {
+        if (timeRemain === gameInfo.duration) {
             displayQuiz();
             updateQuestionNumber();
             readQuestion();
@@ -227,14 +237,22 @@ function calculateScore() {
 /**
  * Virtual MC
  */
+// introduce()
 setUpEventAudioEnd()
 
+function introduce() {
+    audio.src = "https://voubucket.s3.amazonaws.com/introduction/introduction.mp3"
+    audio.currentTime = 0
+    audio.play()
+    Video.displayStatic()
+    setTimeout(Video.startSpeaking, 5000)
+}
+
 function readQuestion() {
-    // TODO: Set 0 for testing
     audio.src = quizzes[quizIndex].audio_url
     console.log("src", audio.src)
-    if (30 - timeRemain >= audio.duration) return
-    audio.currentTime = 30 - timeRemain
+    if (gameInfo.duration - timeRemain >= audio.duration) return
+    audio.currentTime = gameInfo.duration - timeRemain
     audio.play()
     Video.startSpeaking()
 }

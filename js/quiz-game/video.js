@@ -1,5 +1,5 @@
-const video = document.getElementById("video")
-const hiddenVideo = document.getElementById("hidden-video")
+const video = document.querySelector(".video")
+const hiddenVideo = document.querySelector(".hidden-video")
 video.style.display = 'none'
 hiddenVideo.style.display = 'none'
 
